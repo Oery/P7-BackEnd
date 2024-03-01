@@ -131,3 +131,5 @@ dist
 
 # VSCode Extension
 .timetracker
+
+public/images
