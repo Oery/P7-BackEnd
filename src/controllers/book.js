@@ -19,7 +19,7 @@ export const createBook = async (req, res) => {
 
 export const getBooks = async (_, res) => {
     const books = await Book.find().select('-ratings'); // TODO: question mentor
-    res.json(books);
+    return res.status(200).json(books);
 };
 
 export const getBook = async (req, res) => {
@@ -53,27 +53,14 @@ export const rateBook = async (req, res) => {
 
     book.getAverageRating();
     await book.save();
-    res.send(200).send('Rating updated');
+    return res.status(200).send('Rating updated');
 };
 
 export const updateBook = async (req, res) => {
-    const book = await Book.findById(req.params.id);
-    if (!book) {
-        res.status(404).send('Book not found');
-        return;
-    }
-
-    if (req.auth.userId !== book.userId) {
-        res.status(403).send('Forbidden');
-        return;
-    }
-
-    // TODO: Handle image upload with Multer
-    // If image, books infos are stored as string in body.book else raw infos are stored in body
-
-    res.send(200).send('Book updated');
+    return res.status(200).send('Book updated');
 };
 
 export const getBestRating = async (_, res) => {
     const result = await Book.find().select('-ratings').sort({ averageRating: -1 }).limit(3);
+    return res.json(result);
 };
