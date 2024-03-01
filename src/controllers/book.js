@@ -18,7 +18,7 @@ export const createBook = async (req, res) => {
 };
 
 export const getBooks = async (_, res) => {
-    const books = await Book.find();
+    const books = await Book.find().select('-ratings'); // TODO: question mentor
     res.json(books);
 };
 
@@ -75,7 +75,5 @@ export const updateBook = async (req, res) => {
 };
 
 export const getBestRating = async (_, res) => {
-    // TODO: Test this route
-    const result = await Book.find().sort({ averageRating: -1 }).limit(3);
-    res.json(result);
+    const result = await Book.find().select('-ratings').sort({ averageRating: -1 }).limit(3);
 };
