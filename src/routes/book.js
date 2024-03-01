@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { param } from 'express-validator';
 import { auth } from '../middleware/auth.js';
 import { validateRules } from '../middleware/validate.js';
+import { validateBook } from '../middleware/book.js';
+import multer from '../middleware/multer-config.js';
 import {
     createBook,
     deleteBook,
@@ -17,11 +19,11 @@ const bookRoutes = Router();
 const idRule = [param('id').isMongoId().withMessage('Invalid book ID')];
 
 bookRoutes.get('/', getBooks);
-bookRoutes.post('/', auth, createBook);
-bookRoutes.get('/:id', idRule, validateRules, getBook);
-bookRoutes.delete('/:id', idRule, validateRules, auth, deleteBook);
-bookRoutes.put('/:id', idRule, validateRules, auth, updateBook);
-bookRoutes.post('/:id/rating', idRule, validateRules, auth, rateBook);
-bookRoutes.patch('/bestrating', getBestRating);
+bookRoutes.post('/', auth, multer, createBook);
+bookRoutes.get('/bestrating', getBestRating);
+bookRoutes.get('/:id', idRule, validateRules, validateBook, getBook);
+bookRoutes.delete('/:id', idRule, validateRules, auth, validateBook, deleteBook);
+bookRoutes.put('/:id', idRule, validateRules, auth, validateBook, multer, updateBook);
+bookRoutes.post('/:id/rating', idRule, validateRules, auth, validateBook, rateBook);
 
 export default bookRoutes;
