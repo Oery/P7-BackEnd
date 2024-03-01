@@ -9,8 +9,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const corsSettings = {
-    // origin: 'http://localhost:3000',
-    origin: '*',
+    origin: process.env.APP_URL,
 };
 
 const app = express();
@@ -25,4 +24,4 @@ app.use(cors(corsSettings));
 app.use('/api/books', bookRoutes);
 app.use('/api/auth', userRoutes);
 
-app.listen(4000);
+app.listen(process.env.API_PORT);
