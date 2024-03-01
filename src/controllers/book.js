@@ -23,19 +23,12 @@ export const getBooks = async (_, res) => {
 };
 
 export const getBook = async (req, res) => {
-    const book = await Book.findById(req.params.id);
-    if (!book) {
-        res.status(404).send('Book not found');
-        return;
-    }
-    res.json(book);
+    return res.status(200).json(req.book); // req.book is set by validateBook middleware
 };
 
 export const deleteBook = async (req, res) => {
-    const book = await Book.findById(req.params.id);
-    if (!book) {
-        res.status(404).send('Book not found');
-        return;
+    if (req.auth.userId !== req.book.userId) {
+        return res.status(403).send('Forbidden');
     }
 
     if (req.auth.userId !== book.userId) {
