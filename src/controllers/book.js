@@ -48,18 +48,15 @@ export const deleteBook = async (req, res) => {
 };
 
 export const rateBook = async (req, res) => {
-    const book = await Book.findById(req.params.id);
+    const book = req.book;
 
-    const userRating = book.ratings.find((r) => r.userId === rating.userId);
-    if (!userRating) {
-        const rating = {
-            userId: req.auth.userId,
-            grade: req.body.rating,
-        };
-        book.ratings.push(rating);
-    } else {
-        userRating.grade = rating.rating;
-    }
+    const userRating = book.ratings.find((r) => r.userId === req.body.userId);
+    if (userRating) return res.status(400).send('User already rated this book');
+
+    book.ratings.push({
+        userId: req.body.userId,
+        grade: req.body.rating,
+    });
 
     book.getAverageRating();
     await book.save();
