@@ -38,7 +38,7 @@ export const createBook = async (req, res) => {
 };
 
 export const getBooks = async (_, res) => {
-    const books = await Book.find().select('-ratings'); // TODO: question mentor
+    const books = await Book.find().select('-ratings');
     return res.status(200).json(books);
 };
 
