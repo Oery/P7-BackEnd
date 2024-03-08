@@ -8,6 +8,11 @@ import fs from 'fs';
 export const createBook = async (req, res) => {
     const book = JSON.parse(req.body.book);
 
+    const thisYear = new Date().getFullYear();
+    if (book.year > thisYear) {
+        return res.status(400).json({ error: 'Invalid year' });
+    }
+
     sharp(req.file.path)
         .resize(800)
         .jpeg({ quality: 80, chromaSubsampling: '4:2:0' })
