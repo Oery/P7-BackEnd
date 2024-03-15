@@ -1,29 +1,25 @@
-import sharp from 'sharp';
 import Book from '../models/book.js';
-import fs from 'fs';
+import { compressImage, deleteImage, updateImage } from '../utils/image.js';
 
 // req.book is set by validateBook middleware in middleware/book.js
 // req.auth is set by auth middleware in middleware/auth.js
 
-export const createBook = async (req, res) => {
-    const book = JSON.parse(req.body.book);
+const MAX_IMAGE_SIZE = 170_000; // 170 kb
 
-    const thisYear = new Date().getFullYear();
-    if (book.year > thisYear) {
-        return res.status(400).json({ error: 'Invalid year' });
+export const createBook = async (req, res) => {
+    let book;
+    try {
+        book = JSON.parse(req.body.book);
+    } catch (error) {
+        return res.status(400).json({ error });
     }
 
-    sharp(req.file.path)
-        .resize(800)
-        .jpeg({ quality: 80, chromaSubsampling: '4:2:0' })
-        .toFile(`public/images/${req.file.filename}`)
-        .then(() => {
-            fs.unlink(req.file.path, (err) => {
-                if (err) throw err;
-                console.log('Image compressed and original deleted');
-            });
-        })
-        .catch((error) => console.log(error));
+    try {
+        await compressImage(req.file, MAX_IMAGE_SIZE);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error });
+    }
 
     const newBook = new Book({
         ...book,
@@ -31,9 +27,9 @@ export const createBook = async (req, res) => {
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
     });
 
-    newBook
+    return newBook
         .save()
-        .then(() => res.status(201).json({ message: 'Book created' }))
+        .then(() => res.status(201).json('Book created'))
         .catch((error) => res.status(400).json({ error }));
 };
 
@@ -45,7 +41,8 @@ export const getBooks = async (_, res) => {
 };
 
 export const getBook = async (req, res) => {
-    return res.status(200).json(req.book); // req.book is set by validateBook middleware
+    req.book.ratings = req.auth ? req.book.ratings.filter((r) => r.userId !== req.auth.userId) : [];
+    return res.json(req.book);
 };
 
 export const deleteBook = async (req, res) => {
@@ -53,13 +50,14 @@ export const deleteBook = async (req, res) => {
         return res.status(403).send('Forbidden');
     }
 
-    const filename = req.book.imageUrl.split('/images/')[1];
-    fs.unlink(`public/images/${filename}`, () => {
-        req.book
-            .deleteOne({ _id: req.params.id })
-            .then(() => res.status(200).json({ message: 'Book deleted' }))
-            .catch((error) => res.status(401).json({ error }));
-    });
+    try {
+        const filename = req.book.imageUrl.split('/images/')[1];
+        await deleteImage(filename);
+        await req.book.deleteOne({ _id: req.params.id });
+        return res.send('Book deleted');
+    } catch (error) {
+        return res.status(500).json({ error });
+    }
 };
 
 export const rateBook = async (req, res) => {
@@ -86,36 +84,28 @@ export const updateBook = async (req, res) => {
     }
 
     if (!req.file) {
-        await Book.updateOne({ _id: req.params.id }, { ...req.body });
-        return res.status(200).send('Book updated');
+        return Book.updateOne({ _id: req.params.id }, { ...req.body })
+            .then(() => res.send('Book updated'))
+            .catch((error) => res.status(500).json({ error }));
     }
 
-    const book = JSON.parse(req.body.book);
+    let book;
+    try {
+        book = JSON.parse(req.body.book);
+    } catch (error) {
+        return res.status(400).json({ error });
+    }
 
-    sharp(req.file.path)
-        .resize(800)
-        .jpeg({ quality: 80, chromaSubsampling: '4:2:0' })
-        .toFile(`public/images/${req.file.filename}`)
-        .then(() => {
-            fs.unlink(req.file.path, (err) => {
-                if (err) throw err;
-                console.log('Image compressed and original deleted');
-            });
-        })
-        .catch((error) => console.log(error));
+    try {
+        await updateImage(req, MAX_IMAGE_SIZE);
+    } catch (error) {
+        return res.status(500).json({ error });
+    }
 
-    const oldImage = req.book.imageUrl.split('/images/')[1];
-    fs.unlink(`public/images/${oldImage}`, () => {
-        console.log('Old image deleted');
-    });
-
-    const newBook = {
-        ...book,
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
-    };
-
-    await Book.updateOne({ _id: req.params.id }, { ...newBook });
-    return res.status(200).send('Book updated');
+    const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
+    return Book.updateOne({ _id: req.params.id }, { ...book, imageUrl })
+        .then(() => res.send('Book updated'))
+        .catch((error) => res.status(500).json({ error }));
 };
 
 export const getBestRating = async (_, res) => {
