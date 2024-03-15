@@ -12,19 +12,18 @@ export const signup = async (req, res) => {
         });
 
         user.save()
-            .then(() => res.json({ message: 'Utilisateur crée !' }))
+            .then(() => res.json({ message: 'User created' }))
             .catch((err) => res.status(400).json({ err }));
     });
 };
 
 export const login = async (req, res) => {
     const user = await User.findOne({ email: req.body.email });
-    if (!user) return res.status(401).json({ message: 'Paire login/mot de passe incorrecte' });
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
     bcrypt.compare(req.body.password, user.password, (err, result) => {
         if (err) return res.status(500).json({ err });
-        if (!result)
-            return res.status(401).json({ message: 'Paire login/mot de passe incorrecte' });
+        if (!result) return res.status(401).json({ message: 'Invalid credentials' });
 
         return res.json({
             userId: user._id,
