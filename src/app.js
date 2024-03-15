@@ -8,6 +8,11 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 dotenv.config();
 
+// Create temp and public folders if they don't exist
+if (!fs.existsSync('temp')) fs.mkdirSync('temp');
+if (!fs.existsSync('public')) fs.mkdirSync('public');
+if (!fs.existsSync('public/images')) fs.mkdirSync('public/images');
+
 // Clean temp folder
 const files = fs.readdirSync('temp');
 files.forEach((file) => {
