@@ -1,5 +1,6 @@
 import Book from '../models/book.js';
 
+// Check if book is in database and attach it to request
 export async function validateBook(req, res, next) {
     try {
         const book = await Book.findById(req.params.id);

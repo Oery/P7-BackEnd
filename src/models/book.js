@@ -16,6 +16,7 @@ const bookSchema = new Mongoose.Schema({
     averageRating: Number,
 });
 
+// Calculate average rating
 bookSchema.methods.getAverageRating = function () {
     let sum = 0;
     this.ratings.forEach((rating) => {

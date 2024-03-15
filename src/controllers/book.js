@@ -39,6 +39,7 @@ export const getBooks = async (_, res) => {
         .catch((error) => res.status(500).json(error));
 };
 
+// Get book by ID and filter ratings to only show current user rating
 export const getBook = async (req, res) => {
     req.book.ratings = req.auth ? req.book.ratings.filter((r) => r.userId !== req.auth.userId) : [];
     return res.json(req.book);
@@ -109,8 +110,8 @@ export const updateBook = async (req, res) => {
 
 export const getBestRating = async (_, res) => {
     return Book.find()
-        .select('-ratings')
-        .sort({ averageRating: -1 }) // sort by rating
+        .select('-ratings') // remove ratings arrays
+        .sort({ averageRating: -1 }) // sort by average rating
         .limit(3)
         .then((result) => res.json(result))
         .catch((error) => res.status(500).json(error));

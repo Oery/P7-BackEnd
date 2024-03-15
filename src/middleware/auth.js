@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 
+// Adds user data if logged in AND enforces it
 export const auth = (req, res, next) => {
     try {
         const token = req.headers.authorization.split(' ')[1];
@@ -12,6 +13,7 @@ export const auth = (req, res, next) => {
     }
 };
 
+// Adds user data if logged in but DOES NOT enforce it
 export const tryAuth = (req, _, next) => {
     try {
         const token = req.headers.authorization.split(' ')[1];
