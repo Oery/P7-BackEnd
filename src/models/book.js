@@ -22,6 +22,7 @@ bookSchema.methods.getAverageRating = function () {
         sum += rating.grade;
     });
     this.averageRating = sum / (this.ratings.length || 1);
+    return this;
 };
 
 const Book = Mongoose.model('Book', bookSchema);
