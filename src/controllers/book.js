@@ -38,8 +38,10 @@ export const createBook = async (req, res) => {
 };
 
 export const getBooks = async (_, res) => {
-    const books = await Book.find().select('-ratings');
-    return res.status(200).json(books);
+    return Book.find()
+        .select('-ratings') // remove ratings from response
+        .then((books) => res.json(books))
+        .catch((error) => res.status(500).json({ error }));
 };
 
 export const getBook = async (req, res) => {
@@ -71,9 +73,11 @@ export const rateBook = async (req, res) => {
         grade: req.body.rating,
     });
 
-    book.getAverageRating();
-    await book.save();
-    return res.status(200).send('Rating updated');
+    return book
+        .getAverageRating()
+        .save()
+        .then(() => res.json(book))
+        .catch((error) => res.status(500).json({ error }));
 };
 
 export const updateBook = async (req, res) => {
@@ -115,6 +119,10 @@ export const updateBook = async (req, res) => {
 };
 
 export const getBestRating = async (_, res) => {
-    const result = await Book.find().select('-ratings').sort({ averageRating: -1 }).limit(3);
-    return res.json(result);
+    return Book.find()
+        .select('-ratings')
+        .sort({ averageRating: -1 }) // sort by rating
+        .limit(3)
+        .then((result) => res.json(result))
+        .catch((error) => res.status(500).json({ error }));
 };
