@@ -11,14 +11,13 @@ export const createBook = async (req, res) => {
     try {
         book = JSON.parse(req.body.book);
     } catch (error) {
-        return res.status(400).json({ error });
+        return res.status(400).json(error);
     }
 
     try {
         await compressImage(req.file, MAX_IMAGE_SIZE);
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error });
+        return res.status(500).json(error);
     }
 
     const newBook = new Book({
@@ -29,15 +28,15 @@ export const createBook = async (req, res) => {
 
     return newBook
         .save()
-        .then(() => res.status(201).json('Book created'))
-        .catch((error) => res.status(400).json({ error }));
+        .then(() => res.status(201).send({ message: 'Book created' }))
+        .catch((error) => res.status(400).json(error));
 };
 
 export const getBooks = async (_, res) => {
     return Book.find()
         .select('-ratings') // remove ratings from response
         .then((books) => res.json(books))
-        .catch((error) => res.status(500).json({ error }));
+        .catch((error) => res.status(500).json(error));
 };
 
 export const getBook = async (req, res) => {
@@ -54,9 +53,9 @@ export const deleteBook = async (req, res) => {
         const filename = req.book.imageUrl.split('/images/')[1];
         await deleteImage(filename);
         await req.book.deleteOne({ _id: req.params.id });
-        return res.send('Book deleted');
+        return res.send({ message: 'Book deleted' });
     } catch (error) {
-        return res.status(500).json({ error });
+        return res.status(500).json(error);
     }
 };
 
@@ -75,7 +74,7 @@ export const rateBook = async (req, res) => {
         .getAverageRating()
         .save()
         .then(() => res.json(book))
-        .catch((error) => res.status(500).json({ error }));
+        .catch((error) => res.status(500).json(error));
 };
 
 export const updateBook = async (req, res) => {
@@ -85,27 +84,27 @@ export const updateBook = async (req, res) => {
 
     if (!req.file) {
         return Book.updateOne({ _id: req.params.id }, { ...req.body })
-            .then(() => res.send('Book updated'))
-            .catch((error) => res.status(500).json({ error }));
+            .then(() => res.send({ message: 'Book updated' }))
+            .catch((error) => res.status(500).json(error));
     }
 
     let book;
     try {
         book = JSON.parse(req.body.book);
     } catch (error) {
-        return res.status(400).json({ error });
+        return res.status(400).json(error);
     }
 
     try {
         await updateImage(req, MAX_IMAGE_SIZE);
     } catch (error) {
-        return res.status(500).json({ error });
+        return res.status(500).json(error);
     }
 
     const imageUrl = `${req.protocol}://${req.get('host')}/images/${req.file.filename}`;
     return Book.updateOne({ _id: req.params.id }, { ...book, imageUrl })
-        .then(() => res.send('Book updated'))
-        .catch((error) => res.status(500).json({ error }));
+        .then(() => res.send({ message: 'Book updated' }))
+        .catch((error) => res.status(500).json(error));
 };
 
 export const getBestRating = async (_, res) => {
@@ -114,5 +113,5 @@ export const getBestRating = async (_, res) => {
         .sort({ averageRating: -1 }) // sort by rating
         .limit(3)
         .then((result) => res.json(result))
-        .catch((error) => res.status(500).json({ error }));
+        .catch((error) => res.status(500).json(error));
 };
