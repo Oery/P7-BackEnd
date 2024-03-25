@@ -7,22 +7,11 @@ function login(req) {
     return { userId };
 }
 
-// Adds user data if logged in AND enforces it
 export const auth = (req, res, next) => {
     try {
         req.auth = login(req);
         next();
     } catch (error) {
         res.status(401).json(error);
-    }
-};
-
-// Adds user data if logged in but DOES NOT enforce it
-export const tryAuth = (req, _, next) => {
-    try {
-        req.auth = login(req);
-        next();
-    } catch (error) {
-        next();
     }
 };
